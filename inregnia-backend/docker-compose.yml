@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  dynamodb-local:
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+
+  user-management:
+    build:
+      context: .
+      dockerfile: user-management/Dockerfile
+    container_name: user-management
+    ports:
+      - "9001:9000"
+    volumes:
+      - ./shared:/app/shared
+      - ./user-management/app:/app/app
+
+  regulatory-monitor:
+    build:
+      context: .
+      dockerfile: regulatory-monitor/Dockerfile
+    container_name: regulatory-monitor
+    ports:
+      - "9002:9000"
+    volumes:
+      - ./shared:/app/shared
+      - ./regulatory-monitor/app:/app/app
