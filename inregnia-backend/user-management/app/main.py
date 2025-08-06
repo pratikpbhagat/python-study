@@ -4,7 +4,6 @@ from datetime import timedelta
 import httpx
 from fastapi import Request, Response, HTTPException, FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
@@ -55,11 +54,11 @@ def start_auth(req: LoginRequest):
             f"&identity_provider={settings.cognito_identity_provider}"
             f"&login_hint={req.email}"
         )
-        return {"method": "sso", "redirect_url": sso_login_url}
+        return {"auth_type": "SSO", "sso_url": sso_login_url}
     else:
         otp_store[req.email] = random.randint(100000, 999999)
         print(f"Generated OTP for {req.email}: {otp_store[req.email]}")
-        return {"method": "otp"}
+        return {"auth_type": "OTP"}
 
 
 @app.post("/api/auth/resend-otp")
@@ -139,7 +138,7 @@ async def cognito_callback(request: Request, response: Response, code: str = Non
         max_age=int(timedelta(hours=1).total_seconds()),
         httponly=True,
         secure=True,
-        samesite="Lax",
+        samesite="Strict",
         path="/"
     )
     return resp
